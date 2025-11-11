@@ -1368,10 +1368,10 @@ func (i *Ingester) PushWithCleanup(ctx context.Context, req *mimirpb.WriteReques
 					return newPerMetricSeriesLimitReachedError(i.limiter.limits.MaxGlobalSeriesPerMetric(userID), labels)
 				})
 			},
-			func(err error, timestamp int64, labels []mimirpb.LabelAdapter) bool {
-				mimirErr, newErr := util.ConvertHistogramErrorToGlobalError(err)
-				if newErr != nil {
-					level.Warn(i.logger).Log("err", newErr)
+			func(fullErr error, histErr histogram.Error, timestamp int64, labels []mimirpb.LabelAdapter) bool {
+				mimirErr, err := util.ConvertHistogramErrorToGlobalError(histErr)
+				if err != nil {
+					level.Warn(i.logger).Log("msg", "unknown histogram error", "err", err)
 					return false
 				}
 
@@ -1379,7 +1379,7 @@ func (i *Ingester) PushWithCleanup(ctx context.Context, req *mimirpb.WriteReques
 				cast.IncrementDiscardedSamples(labels, 1, reasonInvalidNativeHistogram, startAppend)
 
 				updateFirstPartial(i.errorSamplers.nativeHistogramValidationError, func() softError {
-					return newNativeHistogramValidationError(mimirErr, err, model.Time(timestamp), labels)
+					return newNativeHistogramValidationError(mimirErr, fullErr, model.Time(timestamp), labels)
 				})
 
 				return true

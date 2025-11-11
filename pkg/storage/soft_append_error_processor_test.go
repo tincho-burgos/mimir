@@ -17,8 +17,8 @@ func TestUnknownHistogramErrors(t *testing.T) {
 		func() {}, func(int64, []mimirpb.LabelAdapter) {}, func(int64, []mimirpb.LabelAdapter) {},
 		func(int64, []mimirpb.LabelAdapter) {}, func(int64, []mimirpb.LabelAdapter) {}, func(string, int64, []mimirpb.LabelAdapter) {},
 		func([]mimirpb.LabelAdapter) {}, func([]mimirpb.LabelAdapter) {},
-		func(err error, _timestamp int64, _labels []mimirpb.LabelAdapter) bool {
-			if errors.Is(err, histogram.ErrHistogramCountNotBigEnough) {
+		func(fullErr error, _histErr histogram.Error, _timestamp int64, _labels []mimirpb.LabelAdapter) bool {
+			if errors.Is(fullErr, histogram.ErrHistogramCountNotBigEnough) {
 				return true
 			} else {
 				return false

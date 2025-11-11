@@ -25,7 +25,7 @@ type SoftAppendErrorProcessor struct {
 	maxSeriesPerUser               func(labels []mimirpb.LabelAdapter)
 	maxSeriesPerMetric             func(labels []mimirpb.LabelAdapter)
 	// Native histogram errors.
-	errHistogram func(error, int64, []mimirpb.LabelAdapter) bool
+	errHistogram func(error, histogram.Error, int64, []mimirpb.LabelAdapter) bool
 }
 
 func NewSoftAppendErrorProcessor(
@@ -37,7 +37,7 @@ func NewSoftAppendErrorProcessor(
 	errDuplicateSampleForTimestamp func(string, int64, []mimirpb.LabelAdapter),
 	maxSeriesPerUser func([]mimirpb.LabelAdapter),
 	maxSeriesPerMetric func(labels []mimirpb.LabelAdapter),
-	errHistogram func(error, int64, []mimirpb.LabelAdapter) bool,
+	errHistogram func(error, histogram.Error, int64, []mimirpb.LabelAdapter) bool,
 ) SoftAppendErrorProcessor {
 	return SoftAppendErrorProcessor{
 		commonCallback:                 commonCallback,
@@ -58,7 +58,7 @@ func NewSoftAppendErrorProcessor(
 // err must be non-nil.
 func (e *SoftAppendErrorProcessor) ProcessErr(err error, ts int64, labels []mimirpb.LabelAdapter) bool {
 	e.commonCallback()
-	var histogram_err histogram.Error
+	var histErr histogram.Error
 	switch {
 	case errors.Is(err, storage.ErrOutOfBounds):
 		e.errOutOfBounds(ts, labels)
@@ -82,8 +82,8 @@ func (e *SoftAppendErrorProcessor) ProcessErr(err error, ts int64, labels []mimi
 		e.maxSeriesPerMetric(labels)
 		return true
 	// Map native histogram validation errors to soft errors.
-	case errors.As(err, &histogram_err):
-		return e.errHistogram(err, ts, labels)
+	case errors.As(err, &histErr):
+		return e.errHistogram(err, histErr, ts, labels)
 	}
 	return false
 }

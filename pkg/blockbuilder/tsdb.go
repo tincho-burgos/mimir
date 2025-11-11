@@ -53,8 +53,8 @@ var softErrProcessor = mimir_storage.NewSoftAppendErrorProcessor(
 	func() {}, func(int64, []mimirpb.LabelAdapter) {}, func(int64, []mimirpb.LabelAdapter) {},
 	func(int64, []mimirpb.LabelAdapter) {}, func(int64, []mimirpb.LabelAdapter) {}, func(string, int64, []mimirpb.LabelAdapter) {},
 	func([]mimirpb.LabelAdapter) {}, func([]mimirpb.LabelAdapter) {},
-	func(err error, _ int64, _ []mimirpb.LabelAdapter) bool {
-		_, err = util.ConvertHistogramErrorToGlobalError(err)
+	func(_ error, histErr histogram.Error, _ int64, _ []mimirpb.LabelAdapter) bool {
+		_, err := util.ConvertHistogramErrorToGlobalError(histErr)
 		return err == nil
 	},
 )
