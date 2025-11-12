@@ -370,13 +370,23 @@ type nativeHistogramValidationError struct {
 	timestamp    model.Time
 }
 
-func newNativeHistogramValidationError(id globalerror.ID, originalErr error, timestamp model.Time, seriesLabels []mimirpb.LabelAdapter) nativeHistogramValidationError {
-	return nativeHistogramValidationError{
+func newNativeHistogramValidationErrorWithId(id globalerror.ID, originalErr error, timestamp model.Time, seriesLabels []mimirpb.LabelAdapter) nativeHistogramValidationError {
+	nativeError := nativeHistogramValidationError{
 		id:           id,
 		originalErr:  originalErr,
 		seriesLabels: seriesLabels,
 		timestamp:    timestamp,
 	}
+	return nativeError
+}
+
+func newNativeHistogramValidationError(originalErr error, timestamp model.Time, seriesLabels []mimirpb.LabelAdapter) (nativeHistogramValidationError, bool) {
+	id, ok := globalerror.MapNativeHistogramErr(originalErr)
+	if !ok {
+		return nativeHistogramValidationError{}, false
+	}
+
+	return newNativeHistogramValidationErrorWithId(id, originalErr, timestamp, seriesLabels), true
 }
 
 func (e nativeHistogramValidationError) Error() string {
